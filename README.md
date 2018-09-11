@@ -52,13 +52,13 @@ Make sure you have Python 3.6.x (or higher) installed on your system. You can do
 
 6. Create an account for yourself and for a friend.
     ```sh
-	   >>> X.Balance_Sheet.Add_Account(key_location, "MyAccount")
+	  >>> X.Balance_Sheet.Add_Account(key_location, "MyAccount")
   >>> X.Balance_Sheet.Add_Account(key_location, "OtherAccount")
     ```
 
 7. Create variables that represent each account's public keys.
     ```sh
-	   >>> My_Public_Key=Determine_My_Public_Key(key_location, "MyAccount")
+	  >>> My_Public_Key=Determine_My_Public_Key(key_location, "MyAccount")
 	>>> Other_Public_Key=Determine_My_Public_Key(key_location, "OtherAccount")
     ```
 
