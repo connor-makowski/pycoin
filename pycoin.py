@@ -4,9 +4,6 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Hash import SHA512
 
-proof_of_work='000'
-digits=len(proof_of_work)
-
 def Read_Private_Key_File(key_location, account_name=""):
     private_key_file = open(key_location+r"\Private_Key_"+account_name+".txt", "r")
     PEM_private_key = private_key_file.read()
@@ -23,18 +20,21 @@ def Determine_My_Public_Key(key_location, account_name=""):
 class Blockchain:
     def __init__(self):
         self.Chain={}
+        self.proof_of_work='000'
+        self.digits=len(self.proof_of_work)
         self.Balance_Sheet=self.Balances()
         self.Running_Balance=self.Balances()
         self.Recent_Transaction_Blocks=10
+        self.Miner_Bonus=1
         self.Recent_Transactions=self.Recent_Transaction()
         self.Recent_Pre_Block_Transactions=self.Recent_Transaction()
         print ('Blockchain Sucessfully Created!')
-        
-    def Initialize(self, Public_Key, Funding_Amount):
+
+    def Initialize(self, Public_Key):
         self.Block_ID=1
         Current_Block=self.Block(self.Block_ID)
-        Current_Block.Add_To_Donor_Act(self.Initialization_Block(), Public_Key, Funding_Amount)
-        Current_Block.Calculate_Nonce()
+        Current_Block.Add_To_Miner_Act(self.Initialization_Block(), Public_Key, self.Miner_Bonus)
+        Current_Block.Calculate_Nonce(self.proof_of_work, self.digits)
         Current_Block.Finalize()
         self.Chain[self.Block_ID]=Current_Block
         Next_Block=self.Block(self.Block_ID+1)
@@ -49,20 +49,20 @@ class Blockchain:
         self.Running_Balance.Account_Status=dict(self.Balance_Sheet.Account_Status)
         self.Block_ID=2
         print ('First Block Initialized')
-    
+
     def Gen_Next_Block(self):
         Next_Block=self.Block(self.Block_ID+2)
         self.Chain[self.Block_ID+2]=Next_Block
-        
+
     def Add_Block(self, Public_Key):
         Current_Block=self.Chain[self.Block_ID]
         Previous_Block=self.Chain[self.Block_ID-1]
-        Current_Block.Begin_Block(Previous_Block, Public_Key)
-        Current_Block.Calculate_Nonce()
+        Current_Block.Begin_Block(Previous_Block, Public_Key, self.Miner_Bonus)
+        Current_Block.Calculate_Nonce(self.proof_of_work, self.digits)
         Current_Block.Finalize()
         self.Submit_Block(Current_Block)
         #Send Block to System
-    
+
     #Receive Block From System
     def Submit_Block(self, Block_To_Submit):
         if self.Validate_Block_Sequence(Block_To_Submit.block_id, Block_To_Submit):
@@ -86,28 +86,24 @@ class Blockchain:
                 print ('Invalid Transactions in Block')
         else:
             print ('Invalid Block Sequence')
-    
+
     #TODO Code in exception for missed blocks
     #TODO Code in way to accept different Chain
-    
+
     def Generate_Transaction(self, To, Amount, key_location, account_name=""):
         New_Transaction=self.Transaction(To, Amount, key_location, account_name)
-        #Save Trial1 to try to submit the same transaction twice 
+        #Save Trial1 to try to submit the same transaction twice
         #Remove this Code for actual use
         self.Trial1=New_Transaction
         self.Check_And_Record(New_Transaction)
-        #Send Transaction to System
-    
+        #TODO Send Transaction to System
+
     #Receive Transaction
     def Check_And_Record(self, Transaction):
         #TODO Check if connected to more than half of nodes
         if Transaction.Verify():
-            print ('Transaction is valid')
             if self.Recent_Transactions.Check_Transaction(Transaction):
-                print ('Not a duplicate')
-                print ('Submitted in acceptable time frame')
                 if (self.Running_Balance).Check_Balance(Transaction):
-                    print ('User balance is sufficient')
                     (self.Chain[self.Block_ID+1]).Insert_Transaction(Transaction)
                     (self.Running_Balance).Adjust(Transaction)
                     print ('Transaction Submitted')
@@ -125,7 +121,7 @@ class Blockchain:
             else:
                 return False
         return True
-    
+
     def Validate_Block_Sequence(self, Block_ID, Block_To_Submit='Chain'):
         if Block_To_Submit=='Chain':
             Block_To_Validate=self.Chain[Block_ID]
@@ -143,38 +139,48 @@ class Blockchain:
             return False
         if Test_Block.Apply_Hash(Test_Block.nonce)!=Block_To_Validate.hash:
             return False
-        if Block_To_Validate.hash[:digits]!=proof_of_work:
+        if Block_To_Validate.hash[:self.digits]!=self.proof_of_work:
             return False
         if Previous_Block.hash!=Block_To_Validate.last_hash:
             return False
         else:
             return True
-    
+
+    def Show_Balances(self):
+        print (vars(self.Running_Balance))
+
     class Initialization_Block:
         def __init__(self):
             self.block_id=-1
             self.hash='0000000000000000000000000000000000000000000000000000000000000000'
             self.current_timestamp=0
-            
+
     class Block:
         def __init__(self, Block_ID):
             self.block_id=Block_ID
             self.data=[]
             self.current_timestamp=time.time()
-        
+
         def Insert_Transaction(self, Transaction):
             (self.data).append(Transaction)
-        
-        def Begin_Block(self, previous_block, Public_Key):
+
+        def Begin_Block(self, previous_block, Public_Key, Miner_Bonus):
             self.public_key=Public_Key
+            self.Add_To_Miner_Act(previous_block, Public_Key, Miner_Bonus)
             self.last_hash=previous_block.hash
             self.last_timestamp=previous_block.current_timestamp
             self.hashed_data=self.Hash_Data(self.data)
-        
-        def Add_To_Donor_Act(self, previous_block, Public_Key, Funding_Amount):
+
+        def Add_To_Miner_Act(self, previous_block, Public_Key, Miner_Bonus):
             self.public_key=Public_Key
-            Extra_Funds=self.Additional_Funding(Public_Key, Funding_Amount)
+            Extra_Funds=self.Miner_Bonus_Transaction(Public_Key, Miner_Bonus)
             (self.data).append(Extra_Funds)
+            self.last_hash=previous_block.hash
+            self.last_timestamp=previous_block.current_timestamp
+            self.hashed_data=self.Hash_Data(self.data)
+
+        def Initialize(self, previous_block, Public_Key):
+            self.public_key=Public_Key
             self.last_hash=previous_block.hash
             self.last_timestamp=previous_block.current_timestamp
             self.hashed_data=self.Hash_Data(self.data)
@@ -190,7 +196,7 @@ class Blockchain:
                              )
             return hash_output
 
-        def Calculate_Nonce(self):
+        def Calculate_Nonce(self, proof_of_work, digits):
             nonce=0
             while self.Apply_Hash(nonce)[:digits]!=proof_of_work:
                 nonce +=1
@@ -200,7 +206,7 @@ class Blockchain:
             self.hash=self.Apply_Hash(self.nonce)
             self.current_timestamp=time.time()
             #Announce Block to system
-        
+
         def Validate_Block(self, Temp_Balance_Sheet, Recent_Transactions):
             for Transaction in self.data:
                 if Transaction.Verify() and Temp_Balance_Sheet.Check_Balance(Transaction):
@@ -211,27 +217,29 @@ class Blockchain:
                 else:
                     return False
             return True
-        
+
         def Hash_Data(self, data):
             hash_value = hashlib.sha256()
             hash_value.update(str(data).encode('utf-8'))
             return hash_value.hexdigest()
-        
-        class Additional_Funding():
+
+        class Miner_Bonus_Transaction():
             def __init__(self, Public_Key, Funding_Amount):
                 self.To=Public_Key
                 self.From='System'
                 self.Amount=Funding_Amount
-            
+
+            #TODO Code in hackproof Verification
+
             def Verify(self):
                 return True
-    
+
     class Recent_Transaction:
         def __init__(self):
             pass
-        
+
         #TODO Code in exception for missed transactions
-            
+
         def Compute(self, Chain, Blocks_To_Consider, Block_ID):
             self.Recent_Transaction_Signatures=[]
             Num_Blocks=Block_ID
@@ -240,7 +248,7 @@ class Blockchain:
                 for Transaction in Chain[Block_Num].data:
                     if Transaction.From!='System':
                         self.Recent_Transaction_Signatures.append(Transaction.Signature)
-        
+
         def Check_Transaction(self, Transaction):
             if Transaction.From=='System':
                 return True
@@ -249,11 +257,11 @@ class Blockchain:
                     self.Recent_Transaction_Signatures.append(Transaction.Signature)
                     return True
             return False
-                
+
     class Balances:
         def __init__(self):
             self.Account_Status={}
-        
+
         def Add_Account(self, key_location, account_name=''):
             random_generator = Random.new().read
             obj_key = RSA.generate(1024, random_generator)
@@ -264,7 +272,7 @@ class Blockchain:
             Public_Key=((obj_key.publickey()).exportKey()).decode('utf-8')
             self.Account_Status[Public_Key]=0
             print ('Account added to for {}'.format(account_name))
-        
+
         def Recompute(self, Chain):
             for Public_Key in self.Account_Status:
                 self.Account_Status[Public_Key]=0
@@ -272,21 +280,21 @@ class Blockchain:
                 Block_Data=Chain[Block_ID].data
                 for Transaction in Block_Data:
                     self.Adjust(Transaction)
-        
+
         def Adjust(self, Transaction):
             if Transaction.From!='System':
                 self.Account_Status[Transaction.From]-=Transaction.Amount
             if Transaction.To not in self.Account_Status:
                 self.Account_Status[Transaction.To]=0
             self.Account_Status[Transaction.To]+=Transaction.Amount
-        
+
         def Check_Balance(self, Transaction):
             if Transaction.From=='System':
                 return True
             if self.Account_Status[Transaction.From]>=Transaction.Amount:
                 return True
             return False
-    
+
     class Transaction:
         def __init__(self, To, Amount, key_location, account_name):
             self.Time=time.time()
@@ -300,13 +308,13 @@ class Blockchain:
             self.Amount=Amount
             self.Signature=Signature
             print ('Transaction Generated')
-        
+
         def Verify(self):
             public_key=RSA.importKey((self.From).encode('utf-8'))
             Transaction_String="{to_var}{amount_var}{from_var}{time_var}".format(to_var=self.To, amount_var=self.Amount, from_var=self.From, time_var=self.Time)
             hashed_transaction=self.Hash_Transaction(Transaction_String)
             verify=public_key.verify(hashed_transaction, self.Signature)
             return verify
-        
+
         def Hash_Transaction(self, Transaction_String):
             return SHA512.new(str(Transaction_String).encode('utf-8')).digest()

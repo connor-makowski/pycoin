@@ -1,13 +1,13 @@
-LIFEcoin
+pycoin
 ===============
 
-A Python based blockchain tool for managing cash flows in humanitarian efforts
+A Python based blockchain tool for quickly creating Blockchains.
 
 Features
 --------
 
 - Allow users to create a Blockchain and add blocks of transactional data to it
-- Allow users to verify identity and amount of funds available to specific participants
+- Allow users to verify an anonymous identity and the amount of resources owned by that anonymous identity
 - Allow users to cryptographically secure transactions, validate them and record them in blocks
 - Allow users to validate other Blockchains and reach a consensus among a system of users
 
@@ -25,90 +25,75 @@ Make sure you have Python 3.6.x (or higher) installed on your system. You can do
 
 ### Command Line Interface
 
-1. Clone this repo in your preferred directory:
+1. Clone this repo in your preferred directory and enter the repo:
     ```sh
-    $ git clone https://github.mit.edu/conmak/LIFEcoin.git
+    $ git clone https://github.com/connor-makowski/pycoin.git
+    $ cd pycoin
     ```
-	
 2. Initialize Python.
     ```sh
     $ python
     ```
 3. Import the Blockchain code and some associated functions.
     ```sh
-    >>> import LIFEcoin
-	>>> from LIFEcoin import Determine_My_Public_Key
-	>>> from LIFEcoin import Read_Private_Key_File
+  >>> import pycoin
+	>>> from pycoin import Determine_My_Public_Key
+	>>> from pycoin import Read_Private_Key_File
+    ```
+4. Set your the location to store your private blockchain keys.
+    ```sh
+  >>> key_location=r"C:\users\conmak\desktop"
     ```
 
-4. Create your Blockchain object (Named 'X').
+5. Create your Blockchain object (Named 'X').
     ```sh
-    >>> X=LIFEcoin.Blockchain()
-    ```
-	
-5. Create an Admin and Funds Account.
-    ```sh
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "Admin_Account")
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "Funds_Account")
+    >>> X=pycoin.Blockchain()
     ```
 
-6. Create variables that represent each account's public keys.
+6. Create an account for yourself and for a friend.
     ```sh
-	>>> Admin_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "Admin_Account")
-	>>> Funds_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "Funds_Account")
+	>>> X.Balance_Sheet.Add_Account(key_location, "MyAccount")
+  >>> X.Balance_Sheet.Add_Account(key_location, "OtherAccount")
     ```
 
-7. Initialize your Blockchain (Create your first Block) and give the Admin account some arbitrarily large amount of LifeCoin. The Admin will control the total amount of funds available in the system.
+7. Create variables that represent each account's public keys.
     ```sh
-	>>>X.Initialize(Admin_Public_Key, 100000000000000000)
-    ```
-	
-8. Generate a transaction for the total amount of funding that is currently available to the system.
-    ```sh
-	>>> X.Generate_Transaction(Funds_Public_Key, 5000, r"C:\users\conmak\desktop\HLBC_Keys", "Admin_Account")
+	>>> My_Public_Key=Determine_My_Public_Key(key_location, "MyAccount")
+	>>> Other_Public_Key=Determine_My_Public_Key(key_location, "OtherAccount")
     ```
 
-9. Add organizations and users for this Blockchain and determine their public keys.
+8. Initialize your Blockchain.
     ```sh
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "Org1_Account")
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "Org2_Account")
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "User1_Account")
-	>>> X.Balance_Sheet.Add_Account(r"C:\users\conmak\desktop\HLBC_Keys", "User2_Account")
-	>>> Org1_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "Org1_Account")
-	>>> Org2_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "Org2_Account")
-	>>> User1_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "User1_Account")
-	>>> User2_Public_Key=Determine_My_Public_Key(r"C:\users\conmak\desktop\HLBC_Keys", "User2_Account")
+	>>>X.Initialize(My_Public_Key)
     ```
 
-10. Allocate LifeCoin to users.
+9. Generate a transaction to send your first mined coin to your friend's account.
     ```sh
-	>>> X.Generate_Transaction(User1_Public_Key, 10, r"C:\users\conmak\desktop\HLBC_Keys", "Funds_Account")
-	>>> X.Generate_Transaction(User2_Public_Key, 10, r"C:\users\conmak\desktop\HLBC_Keys", "Funds_Account")
+	>>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
     ```
 
-11. Allow users to claim their LifeCoins as cash by trading it to Organizations for any desired from of local currency.
+10. Try to double spend allocated resources.
     ```sh
-	>>> X.Generate_Transaction(Org1_Public_Key, 10, r"C:\users\conmak\desktop\HLBC_Keys", "User1_Account")
+	>>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
     ```
 
-12. Try to double dip on allocated cash. (Let a user try to withdrawl more than is allowed.)
+11. Add a block to the Blockchain. (any node in the network can do this)
     ```sh
-	>>> X.Generate_Transaction(Org1_Public_Key, 10, r"C:\users\conmak\desktop\HLBC_Keys", "User1_Account")
+	>>> X.Add_Block(My_Public_Key)
     ```
 
-13. Add a block to the Blockchain. (any node in the network can do this)
+12. Check running balances of all accounts in the Blockchain.
     ```sh
-	>>> X.Add_Block(Org1_Public_Key)
+	>>> X.Show_Balances()
     ```
 
-14. Check running balances of all accounts in the Blockchain.
-    ```sh
-	>>> print (vars(X.Running_Balance))
-    ```
-
-15. Attempt to check and record a transaction that has already been submitted. (In Line 92 of LIFEcoin.py, there is a special variable called "trial_1" which represents the last transaction that has been submitted. This should be removed before deploying LIFEcoin in a live setting.)
+13. Attempt to check and record a transaction that has already been submitted. (In Line 98 of pycoin.py, there is a special variable called "trial_1" which represents the last transaction that has been submitted. This should be removed before deploying pycoin in a live setting.)
     ```sh
 	>>> X.Check_And_Record(X.Trial1)
+    ```
+14. Validate all transactions in the chain. This should happen after you receive a new chain.
+    ```sh
+	>>> X.Validate_Chain()
     ```
 
 License
@@ -125,4 +110,3 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job.)
 
 [Crypto]: <https://pypi.org/project/crypto/>
-
