@@ -37,8 +37,8 @@ Make sure you have Python 3.6.x (or higher) installed on your system. You can do
 3. Import the Blockchain code and some associated functions.
     ```sh
     >>> import pycoin
-	  >>> from pycoin import Determine_My_Public_Key
-	  >>> from pycoin import Read_Private_Key_File
+    >>> from pycoin import Determine_My_Public_Key
+    >>> from pycoin import Read_Private_Key_File
     ```
 4. Set your the location to store your private blockchain keys.
     ```sh
@@ -52,48 +52,48 @@ Make sure you have Python 3.6.x (or higher) installed on your system. You can do
 
 6. Create an account for yourself and for a friend.
     ```sh
-	  >>> X.Balance_Sheet.Add_Account(key_location, "MyAccount")
+    >>> X.Balance_Sheet.Add_Account(key_location, "MyAccount")
     >>> X.Balance_Sheet.Add_Account(key_location, "OtherAccount")
     ```
 
 7. Create variables that represent each account's public keys.
     ```sh
-	  >>> My_Public_Key=Determine_My_Public_Key(key_location, "MyAccount")
-	  >>> Other_Public_Key=Determine_My_Public_Key(key_location, "OtherAccount")
+    >>> My_Public_Key=Determine_My_Public_Key(key_location, "MyAccount")
+    >>> Other_Public_Key=Determine_My_Public_Key(key_location, "OtherAccount")
     ```
 
 8. Initialize your Blockchain.
     ```sh
-	  >>>X.Initialize(My_Public_Key)
+    >>>X.Initialize(My_Public_Key)
     ```
 
 9. Generate a transaction to send your first mined coin to your friend's account.
     ```sh
-	  >>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
+    >>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
     ```
 
 10. Try to double spend allocated resources.
     ```sh
-	  >>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
+    >>> X.Generate_Transaction(To=Other_Public_Key, Amount=1, key_location, "MyAccount")
     ```
 
 11. Add a block to the Blockchain. (any node in the network can do this)
     ```sh
-	  >>> X.Add_Block(My_Public_Key)
+    >>> X.Add_Block(My_Public_Key)
     ```
 
 12. Check running balances of all accounts in the Blockchain.
     ```sh
-	  >>> X.Show_Balances()
+    >>> X.Show_Balances()
     ```
 
 13. Attempt to check and record a transaction that has already been submitted. (In Line 98 of pycoin.py, there is a special variable called "trial_1" which represents the last transaction that has been submitted. This should be removed before deploying pycoin in a live setting.)
     ```sh
-	  >>> X.Check_And_Record(X.Trial1)
+    >>> X.Check_And_Record(X.Trial1)
     ```
 14. Validate all transactions in the chain. This should happen after you receive a new chain.
     ```sh
-	  >>> X.Validate_Chain()
+    >>> X.Validate_Chain()
     ```
 
 License
