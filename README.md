@@ -25,7 +25,7 @@ Make sure you have Python 3.6.x (or higher) installed on your system. You can do
 
 ### Setup
 Install PyCrypto
-    ```sh
+    ```
     pip install pycrypto
     ```
 
