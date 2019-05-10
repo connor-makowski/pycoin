@@ -16,12 +16,19 @@ Prerequisites
 
 This project uses a number of open source projects to work properly:
 
-* [Crypto] - A simple interface to GPG encryption and decryption
+* [PyCrypto] - A simple interface to GPG encryption and decryption
 
 How to Use
 ----------
 
 Make sure you have Python 3.6.x (or higher) installed on your system. You can download it [here](https://www.python.org/downloads/).
+
+### Setup
+Install PyCrypto
+    ```sh
+    pip install pycrypto
+    ```
+
 
 ### Command Line Interface
 
